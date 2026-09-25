@@ -11,7 +11,7 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await apiClient.get<{ success: boolean; data: AdminDashboardData }>('/admin/dashboard');
+        const response = await apiClient.get<{ success: boolean; data: AdminDashboardData }>('/dashboard/admin');
         setData(response.data.data);
       } catch {
         setError('Unable to connect to server. Please try again later.');

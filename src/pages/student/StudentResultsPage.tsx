@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { examService } from '../../services/examService';
+import apiClient from '../../api/axios';
 import type { Result } from '../../types';
 import { FileText } from 'lucide-react';
 
@@ -8,7 +8,17 @@ const StudentResultsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(false);
+    const fetchResults = async () => {
+      try {
+        const res = await apiClient.get('/students/me/results');
+        setResults(res.data.data || []);
+      } catch (err) {
+        console.error('Failed to fetch results:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
   }, []);
 
   return (

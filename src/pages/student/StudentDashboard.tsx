@@ -11,7 +11,7 @@ const StudentDashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await apiClient.get<{ success: boolean; data: StudentDashboardData }>('/student/dashboard');
+        const response = await apiClient.get<{ success: boolean; data: StudentDashboardData }>('/dashboard/student');
         setData(response.data.data);
       } catch {
         setError('Unable to connect to server. Please try again later.');

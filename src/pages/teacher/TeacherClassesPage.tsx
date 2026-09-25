@@ -13,16 +13,14 @@ const TeacherClassesPage: React.FC = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const res = await apiClient.get('/teachers');
-        const teachers = res.data.data;
-        const myTeacher = teachers.find((t: any) => t.userId?._id === user?._id || t.userId === user?._id);
-        if (myTeacher) {
-          setClasses(myTeacher.classIds || []);
-        }
-      } catch {} finally { setLoading(false); }
+        const res = await apiClient.get('/teachers/me/classes');
+        setClasses(res.data.data || []);
+      } catch (err) {
+        console.error('Failed to fetch teacher classes:', err);
+      } finally { setLoading(false); }
     };
     fetchClasses();
-  }, [user]);
+  }, []);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full"></div></div>;
 

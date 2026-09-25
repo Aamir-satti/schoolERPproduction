@@ -55,6 +55,179 @@ router.get('/', requireAuth, requireRole(['ADMIN']), async (req, res, next) => {
   }
 });
 
+// GET /api/students/me - Get current student's profile
+router.get('/me', requireAuth, requireRole(['STUDENT']), async (req: any, res, next) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.userId })
+      .populate('userId', 'name email phone address')
+      .populate('classId', 'name code sections');
+    
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    res.json({ success: true, message: 'Student profile retrieved', data: student });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/students/me/attendance - Get current student's attendance
+router.get('/me/attendance', requireAuth, requireRole(['STUDENT']), async (req: any, res, next) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.userId });
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    const { startDate, endDate } = req.query;
+    const Attendance = (await import('../models/Attendance')).Attendance;
+    const query: any = { studentId: student._id };
+    
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate as string);
+      if (endDate) query.date.$lte = new Date(endDate as string);
+    }
+
+    const attendance = await Attendance.find(query)
+      .populate('classId', 'name code')
+      .sort({ date: -1 });
+
+    // Calculate summary
+    const totalDays = attendance.length;
+    const present = attendance.filter((a: any) => a.status === 'PRESENT').length;
+    const absent = attendance.filter((a: any) => a.status === 'ABSENT').length;
+    const late = attendance.filter((a: any) => a.status === 'LATE').length;
+    const leave = attendance.filter((a: any) => a.status === 'LEAVE').length;
+    const percentage = totalDays > 0 ? Math.round((present / totalDays) * 100) : 0;
+
+    res.json({
+      success: true,
+      message: 'Student attendance retrieved',
+      data: {
+        records: attendance,
+        summary: { totalDays, present, absent, late, leave, percentage },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/students/me/results - Get current student's published results
+router.get('/me/results', requireAuth, requireRole(['STUDENT']), async (req: any, res, next) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.userId });
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    const Exam = (await import('../models/Exam')).Exam;
+    const Mark = (await import('../models/Mark')).Mark;
+
+    const publishedExams = await Exam.find({
+      isPublished: true,
+      classIds: student.classId,
+    }).populate('classIds', 'name code').sort({ startDate: -1 });
+
+    const results = [];
+    for (const exam of publishedExams) {
+      const marks = await Mark.find({
+        studentId: student._id,
+        examId: exam._id,
+      }).populate('subjectId', 'name code');
+
+      if (marks.length > 0) {
+        const totalObtained = marks.reduce((sum: number, m: any) => sum + m.obtainedMarks, 0);
+        const totalMax = marks.reduce((sum: number, m: any) => sum + m.maxMarks, 0);
+        const percentage = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
+        const allPassed = marks.every((m: any) => m.isPassed);
+
+        results.push({
+          examId: exam,
+          subjects: marks,
+          totalObtained,
+          totalMax,
+          percentage,
+          grade: percentage >= 90 ? 'A+' : percentage >= 80 ? 'A' : percentage >= 70 ? 'B' : percentage >= 60 ? 'C' : percentage >= 50 ? 'D' : 'F',
+          resultStatus: allPassed ? 'PASS' : 'FAIL',
+        });
+      }
+    }
+
+    res.json({ success: true, message: 'Student results retrieved', data: results });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/students/me/fees - Get current student's fee ledger
+router.get('/me/fees', requireAuth, requireRole(['STUDENT']), async (req: any, res, next) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.userId });
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    const FeePayment = (await import('../models/FeePayment')).FeePayment;
+    const payments = await FeePayment.find({ studentId: student._id })
+      .populate('feeStructureId', 'name')
+      .sort({ month: -1 });
+
+    const totalAmount = payments.reduce((sum: number, p: any) => sum + p.totalAmount, 0);
+    const totalPaid = payments.reduce((sum: number, p: any) => sum + p.paidAmount, 0);
+    const totalBalance = payments.reduce((sum: number, p: any) => sum + p.balanceAmount, 0);
+
+    res.json({
+      success: true,
+      message: 'Student fee ledger retrieved',
+      data: {
+        payments,
+        summary: { totalAmount, totalPaid, totalBalance },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/students/me/timetable - Get current student's class timetable
+router.get('/me/timetable', requireAuth, requireRole(['STUDENT']), async (req: any, res, next) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.userId });
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    const Timetable = (await import('../models/Timetable')).Timetable;
+    const query: any = { classId: student.classId };
+    if (student.sectionId) {
+      query.$or = [{ sectionId: student.sectionId }, { sectionId: null }, { sectionId: '' }];
+    }
+
+    const timetable = await Timetable.find(query)
+      .populate('subjectId', 'name code')
+      .populate('teacherId')
+      .sort({ dayOfWeek: 1, startTime: 1 });
+
+    // Populate teacher name from User
+    const populatedTimetable = [];
+    for (const entry of timetable) {
+      const entryObj = entry.toObject();
+      if (entryObj.teacherId) {
+        const teacher = await Teacher.findById(entryObj.teacherId).populate('userId', 'name');
+        entryObj.teacherName = (teacher as any)?.userId?.name || 'N/A';
+      }
+      populatedTimetable.push(entryObj);
+    }
+
+    res.json({ success: true, message: 'Student timetable retrieved', data: populatedTimetable });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/students/:id
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {

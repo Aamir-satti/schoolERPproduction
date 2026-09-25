@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { attendanceService } from '../../services/attendanceService';
+import apiClient from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import type { AttendanceReport } from '../../types';
 import { AlertCircle } from 'lucide-react';
@@ -11,8 +11,17 @@ const StudentAttendancePage: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // In a real implementation, we'd get the student ID from the student profile
-    setLoading(false);
+    const fetchAttendance = async () => {
+      try {
+        const res = await apiClient.get('/attendance/me');
+        setReport(res.data.data.summary);
+      } catch (err) {
+        setError('Unable to load attendance data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttendance();
   }, []);
 
   return (
