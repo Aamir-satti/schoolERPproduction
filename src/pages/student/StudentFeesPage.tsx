@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { financeService } from '../../services/financeService';
+import apiClient from '../../api/axios';
 import { DollarSign } from 'lucide-react';
 
 const StudentFeesPage: React.FC = () => {
   const [ledger, setLedger] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { setLoading(false); }, []);
+  useEffect(() => {
+    const fetchFees = async () => {
+      try {
+        const res = await apiClient.get('/students/me/fees');
+        setLedger(res.data.data.payments || []);
+      } catch (err) {
+        console.error('Failed to fetch fees:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFees();
+  }, []);
 
   return (
     <div>

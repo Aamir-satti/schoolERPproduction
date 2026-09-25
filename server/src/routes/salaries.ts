@@ -7,8 +7,20 @@ const router = Router();
 
 router.get('/profiles', requireAuth, requireRole(['ADMIN']), async (_req, res, next) => {
   try {
-    const profiles = await SalaryProfile.find({ isActive: true }).populate('teacherId', 'name');
-    res.json({ success: true, message: 'Salary profiles retrieved', data: profiles });
+    const profiles = await SalaryProfile.find({ isActive: true })
+      .populate({
+        path: 'teacherId',
+        populate: { path: 'userId', select: 'name email' }
+      });
+    
+    // Flatten the teacher name for easier frontend access
+    const profilesWithName = profiles.map(p => {
+      const obj = p.toObject();
+      obj.teacherName = (obj.teacherId as any)?.userId?.name || 'Unknown';
+      return obj;
+    });
+    
+    res.json({ success: true, message: 'Salary profiles retrieved', data: profilesWithName });
   } catch (error) {
     next(error);
   }
@@ -47,9 +59,20 @@ router.get('/records', requireAuth, requireRole(['ADMIN']), async (req, res, nex
     if (month) query.month = month;
 
     const records = await SalaryRecord.find(query)
-      .populate('teacherId', 'name')
+      .populate({
+        path: 'teacherId',
+        populate: { path: 'userId', select: 'name email' }
+      })
       .sort({ month: -1 });
-    res.json({ success: true, message: 'Salary records retrieved', data: records });
+    
+    // Flatten teacher name
+    const recordsWithName = records.map(r => {
+      const obj = r.toObject();
+      obj.teacherName = (obj.teacherId as any)?.userId?.name || 'Unknown';
+      return obj;
+    });
+    
+    res.json({ success: true, message: 'Salary records retrieved', data: recordsWithName });
   } catch (error) {
     next(error);
   }
@@ -92,10 +115,20 @@ router.post('/records/generate', requireAuth, requireRole(['ADMIN']), async (req
 router.post('/records/:id/pay', requireAuth, requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const { paidAmount, paymentMethod, referenceNo, remarks } = req.body;
+    
+    if (!paidAmount || paidAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be greater than zero' });
+    }
+
     const record = await SalaryRecord.findById(req.params.id);
     if (!record) return res.status(404).json({ success: false, message: 'Salary record not found' });
 
-    record.paidAmount = (record.paidAmount || 0) + paidAmount;
+    const newPaidAmount = (record.paidAmount || 0) + paidAmount;
+    if (newPaidAmount > record.netSalary) {
+      return res.status(400).json({ success: false, message: 'Payment exceeds outstanding salary balance' });
+    }
+
+    record.paidAmount = newPaidAmount;
     record.balanceAmount = record.netSalary - record.paidAmount;
     record.paymentDate = new Date();
     record.paymentMethod = paymentMethod;

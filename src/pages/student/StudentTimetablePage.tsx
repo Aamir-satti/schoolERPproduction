@@ -14,9 +14,11 @@ const StudentTimetablePage: React.FC = () => {
   useEffect(() => {
     const fetchTimetable = async () => {
       try {
-        const res = await apiClient.get('/timetables');
-        setTimetable(res.data.data);
-      } catch {} finally { setLoading(false); }
+        const res = await apiClient.get('/students/me/timetable');
+        setTimetable(res.data.data || []);
+      } catch (err) {
+        console.error('Failed to fetch student timetable:', err);
+      } finally { setLoading(false); }
     };
     fetchTimetable();
   }, []);

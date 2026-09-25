@@ -14,17 +14,14 @@ const TeacherTimetablePage: React.FC = () => {
   useEffect(() => {
     const fetchTimetable = async () => {
       try {
-        const teacherRes = await apiClient.get('/teachers');
-        const teachers = teacherRes.data.data;
-        const myTeacher = teachers.find((t: any) => t.userId?._id === user?._id || t.userId === user?._id);
-        if (myTeacher) {
-          const res = await apiClient.get(`/timetables/teacher/${myTeacher._id}`);
-          setTimetable(res.data.data);
-        }
-      } catch {} finally { setLoading(false); }
+        const res = await apiClient.get('/teachers/me/timetable');
+        setTimetable(res.data.data || []);
+      } catch (err) {
+        console.error('Failed to fetch teacher timetable:', err);
+      } finally { setLoading(false); }
     };
     fetchTimetable();
-  }, [user]);
+  }, []);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full"></div></div>;
 

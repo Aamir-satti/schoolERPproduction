@@ -46,6 +46,70 @@ router.get('/', requireAuth, requireRole(['ADMIN']), async (req, res, next) => {
   }
 });
 
+// GET /api/teachers/me - Get current teacher's profile
+router.get('/me', requireAuth, requireRole(['TEACHER']), async (req: any, res, next) => {
+  try {
+    const teacher = await Teacher.findOne({ userId: req.user.userId })
+      .populate('userId', 'name email phone address')
+      .populate('subjectIds', 'name code')
+      .populate('classIds', 'name code sections');
+    
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher profile not found' });
+    }
+
+    res.json({ success: true, message: 'Teacher profile retrieved', data: teacher });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/teachers/me/classes - Get current teacher's assigned classes
+router.get('/me/classes', requireAuth, requireRole(['TEACHER']), async (req: any, res, next) => {
+  try {
+    const teacher = await Teacher.findOne({ userId: req.user.userId }).populate('classIds', 'name code sections');
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher profile not found' });
+    }
+    res.json({ success: true, message: 'Teacher classes retrieved', data: teacher.classIds });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/teachers/me/subjects - Get current teacher's assigned subjects
+router.get('/me/subjects', requireAuth, requireRole(['TEACHER']), async (req: any, res, next) => {
+  try {
+    const teacher = await Teacher.findOne({ userId: req.user.userId }).populate('subjectIds', 'name code classIds');
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher profile not found' });
+    }
+    res.json({ success: true, message: 'Teacher subjects retrieved', data: teacher.subjectIds });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/teachers/me/timetable - Get current teacher's timetable
+router.get('/me/timetable', requireAuth, requireRole(['TEACHER']), async (req: any, res, next) => {
+  try {
+    const teacher = await Teacher.findOne({ userId: req.user.userId });
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher profile not found' });
+    }
+
+    const Timetable = (await import('../models/Timetable')).Timetable;
+    const timetable = await Timetable.find({ teacherId: teacher._id })
+      .populate('classId', 'name code')
+      .populate('subjectId', 'name code')
+      .sort({ dayOfWeek: 1, startTime: 1 });
+
+    res.json({ success: true, message: 'Teacher timetable retrieved', data: timetable });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/teachers/:id
 router.get('/:id', requireAuth, async (req, res, next) => {
   try {

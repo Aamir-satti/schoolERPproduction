@@ -57,36 +57,69 @@ router.get('/student/:studentId/ledger', requireAuth, async (req, res, next) => 
   }
 });
 
-// Record Payment
+// Record Payment - Updates existing fee obligation or creates new one
 router.post('/payments', requireAuth, requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const { studentId, feeStructureId, month, component, totalAmount, paidAmount, paymentMethod, referenceNo, remarks } = req.body;
     
-    if (!studentId || !feeStructureId || !month || !component || !totalAmount || !paidAmount) {
+    if (!studentId || !feeStructureId || !month || !component || !paidAmount) {
       return res.status(400).json({ success: false, message: 'Required fields missing' });
     }
 
-    const balanceAmount = totalAmount - paidAmount;
-    const status = balanceAmount === 0 ? 'PAID' : balanceAmount < totalAmount ? 'PARTIAL' : 'UNPAID';
-    const challanNo = `CHL-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    if (paidAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be greater than zero' });
+    }
 
-    const payment = await FeePayment.create({
-      studentId,
-      feeStructureId,
-      month,
-      component,
-      totalAmount,
-      paidAmount,
-      balanceAmount,
-      paymentDate: new Date(),
-      paymentMethod,
-      referenceNo,
-      remarks,
-      status,
-      challanNo,
-    });
+    // Check if fee obligation already exists for this student/month/component
+    let feePayment = await FeePayment.findOne({ studentId, month, component });
 
-    res.status(201).json({ success: true, message: 'Payment recorded', data: payment });
+    if (feePayment) {
+      // Update existing fee obligation
+      feePayment.paidAmount += paidAmount;
+      feePayment.balanceAmount = feePayment.totalAmount - feePayment.paidAmount;
+      feePayment.paymentDate = new Date();
+      feePayment.paymentMethod = paymentMethod;
+      feePayment.referenceNo = referenceNo;
+      feePayment.remarks = remarks;
+      feePayment.status = feePayment.balanceAmount === 0 ? 'PAID' : feePayment.paidAmount > 0 ? 'PARTIAL' : 'UNPAID';
+      
+      if (feePayment.paidAmount > feePayment.totalAmount) {
+        return res.status(400).json({ success: false, message: 'Payment exceeds outstanding balance' });
+      }
+      
+      await feePayment.save();
+    } else {
+      // Create new fee obligation
+      if (!totalAmount || totalAmount <= 0) {
+        return res.status(400).json({ success: false, message: 'Total amount is required for new fee obligations' });
+      }
+
+      if (paidAmount > totalAmount) {
+        return res.status(400).json({ success: false, message: 'Payment cannot exceed total amount' });
+      }
+
+      const balanceAmount = totalAmount - paidAmount;
+      const status = balanceAmount === 0 ? 'PAID' : paidAmount > 0 ? 'PARTIAL' : 'UNPAID';
+      const challanNo = `CHL-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+      feePayment = await FeePayment.create({
+        studentId,
+        feeStructureId,
+        month,
+        component,
+        totalAmount,
+        paidAmount,
+        balanceAmount,
+        paymentDate: new Date(),
+        paymentMethod,
+        referenceNo,
+        remarks,
+        status,
+        challanNo,
+      });
+    }
+
+    res.status(201).json({ success: true, message: 'Payment recorded', data: feePayment });
   } catch (error) {
     next(error);
   }
