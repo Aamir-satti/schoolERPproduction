@@ -207,6 +207,7 @@ export interface Exam {
   startDate: string;
   endDate: string;
   status: ExamStatus;
+  isPublished: boolean;
   createdAt: string;
 }
 
