@@ -1,28 +1,21 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute, PublicRoute } from './routes/ProtectedRoute';
 
 // Layouts
-const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
-const TeacherLayout = lazy(() => import('./layouts/TeacherLayout'));
-const StudentLayout = lazy(() => import('./layouts/StudentLayout'));
-const GuestLayout = lazy(() => import('./layouts/GuestLayout'));
+import AdminLayout from './layouts/AdminLayout';
+import TeacherLayout from './layouts/TeacherLayout';
+import StudentLayout from './layouts/StudentLayout';
+import GuestLayout from './layouts/GuestLayout';
 
 // Pages
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const GuestHomePage = lazy(() => import('./pages/GuestHomePage'));
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-const StudentsPage = lazy(() => import('./pages/admin/StudentsPage'));
-const TeacherDashboard = lazy(() => import('./pages/teacher/TeacherDashboard'));
-const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
-
-// Loading fallback
-const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-spin w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-  </div>
-);
+import LoginPage from './pages/LoginPage';
+import GuestHomePage from './pages/GuestHomePage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import StudentsPage from './pages/admin/StudentsPage';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import StudentDashboard from './pages/student/StudentDashboard';
 
 // Placeholder pages for future implementation
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -39,7 +32,6 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Public Routes */}
             <Route element={<GuestLayout />}>
@@ -115,7 +107,6 @@ const App: React.FC = () => {
             {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );
