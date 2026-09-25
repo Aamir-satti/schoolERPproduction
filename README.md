@@ -1,124 +1,108 @@
-# 🏫 School Management System — MERN Stack
+# 🏫 School ERP System
 
-A complete, production-ready School Management System built with the MERN stack (MongoDB, Express, React, Node.js) with TypeScript.
+A comprehensive School Management System built with React, TypeScript, Node.js, Express, and MongoDB.
 
----
+## 📋 Features
 
-## 📋 Table of Contents
+### Authentication & Authorization
+- JWT-based authentication with access/refresh tokens
+- Role-based access control (Admin, Teacher, Student)
+- Secure password hashing with bcrypt
+- HTTP-only cookies for refresh tokens
+- Protected routes on both frontend and backend
 
-- [Architecture Overview](#architecture-overview)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Database Design](#database-design)
-- [API Documentation](#api-documentation)
-- [Authentication](#authentication)
-- [Deployment](#deployment)
-- [Development Phases](#development-phases)
+### Admin Module
+- **Dashboard**: Real-time statistics from database (students, teachers, classes, attendance, fees, salaries)
+- **Student Management**: Create, edit, deactivate students with full profile management
+- **Teacher Management**: Create, edit, manage teacher profiles and assignments
+- **Class Management**: Create classes with sections, assign class teachers
+- **Subject Management**: Create subjects, assign to classes and teachers
+- **Timetable Management**: Create and manage class schedules with conflict detection
+- **Attendance**: Mark and manage student attendance by class and date
+- **Examinations**: Create exams, manage subjects and dates
+- **Fee Management**: Fee structures, payment recording, financial dashboard
+- **Salary Management**: Salary profiles, monthly records, payment tracking
+- **Notifications**: Create and manage system-wide announcements
+- **Settings**: School configuration
 
----
+### Teacher Module
+- **Dashboard**: Assigned classes, today's schedule, pending tasks
+- **My Classes**: View assigned classes and subjects
+- **Timetable**: Personal weekly schedule
+- **Attendance**: Mark attendance for assigned classes
+- **Exams & Marks**: View exams and enter student marks
 
-## 🏗️ Architecture Overview
+### Student Module
+- **Dashboard**: Personal timetable, attendance percentage, results, fee status
+- **Timetable**: View class schedule
+- **Attendance**: View personal attendance records and statistics
+- **Results**: View published exam results
+- **Fees**: View fee status and payment history
+- **Notifications**: View relevant notifications
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    CLIENT (React + Vite)                     │
-│  TypeScript • Tailwind CSS • React Router • Axios           │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ REST API (HTTPS)
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   SERVER (Express + Node.js)                 │
-│  TypeScript • JWT Auth • Zod Validation • Multer Uploads    │
-│  Puppeteer PDF • Rate Limiting • Helmet Security            │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ Mongoose ODM
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     DATABASE (MongoDB)                       │
-│  Indexed Collections • Document References • Timestamps     │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Data Flow
-```
-USER → React → Axios → Express API → Controller → Service → Mongoose → MongoDB → Response → React
-```
-
----
+### Public/Guest
+- School information landing page
+- Public announcements
+- Contact information
+- Admission information
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| React 18 | UI Framework |
-| Vite | Build Tool |
-| TypeScript | Type Safety |
-| Tailwind CSS | Styling |
-| React Router | Routing |
-| Axios | HTTP Client |
-| Lucide React | Icons |
+- **React 18** with TypeScript
+- **Vite** for build tooling
+- **Tailwind CSS** for styling
+- **React Router** for routing
+- **Axios** for API communication
+- **Lucide React** for icons
 
 ### Backend
-| Technology | Purpose |
-|-----------|---------|
-| Node.js | Runtime |
-| Express.js | Web Framework |
-| TypeScript | Type Safety |
-| MongoDB + Mongoose | Database + ODM |
-| JWT | Authentication |
-| bcryptjs | Password Hashing |
-| Zod | Validation |
-| Multer | File Uploads |
-| Puppeteer | PDF Generation |
-| Helmet | Security Headers |
-| express-rate-limit | Rate Limiting |
-
----
+- **Node.js** with Express
+- **TypeScript**
+- **MongoDB** with Mongoose ODM
+- **JWT** for authentication
+- **bcryptjs** for password hashing
+- **Helmet** for security headers
+- **CORS** for cross-origin requests
+- **express-rate-limit** for rate limiting
+- **cookie-parser** for cookie handling
 
 ## 📁 Project Structure
 
 ```
-school-management-system/
-├── client/                          # React Frontend
-│   ├── src/
-│   │   ├── api/                     # Axios client & interceptors
-│   │   ├── components/              # Reusable UI components
-│   │   ├── context/                 # React Context (Auth)
-│   │   ├── layouts/                 # Layout wrappers per role
-│   │   ├── pages/                   # Route pages
-│   │   ├── routes/                  # Route protection
-│   │   ├── services/                # API service modules
-│   │   ├── types/                   # TypeScript definitions
-│   │   ├── App.tsx                  # Main app with routes
-│   │   └── main.tsx                 # Entry point
-│   └── package.json
+schoolERPproduction/
+├── src/                          # React Frontend
+│   ├── api/                      # Axios client configuration
+│   ├── context/                  # React Context (Auth)
+│   ├── layouts/                  # Layout components per role
+│   ├── pages/                    # Page components
+│   │   ├── admin/               # Admin pages
+│   │   ├── teacher/             # Teacher pages
+│   │   └── student/             # Student pages
+│   ├── routes/                   # Route protection
+│   ├── services/                 # API service modules
+│   ├── types/                    # TypeScript type definitions
+│   ├── App.tsx                   # Main app with routing
+│   └── main.tsx                  # Entry point
 │
-├── server/                          # Express Backend
+├── server/                       # Express Backend
 │   ├── src/
-│   │   ├── config/                  # Database, env config
-│   │   ├── controllers/             # Request handlers
-│   │   ├── middleware/              # Auth, validation, errors
-│   │   ├── models/                  # Mongoose schemas
-│   │   ├── routes/                  # Express routes
-│   │   ├── services/                # Business logic
-│   │   ├── validators/              # Zod schemas
-│   │   ├── utils/                   # Helpers
-│   │   └── templates/               # PDF HTML templates
-│   ├── scripts/
-│   │   ├── create-admin.ts          # Admin creation script
-│   │   └── seed-dev.ts              # Dev seed data
-│   ├── package.json
-│   └── tsconfig.json
+│   │   ├── config/              # Database, environment config
+│   │   ├── middleware/          # Auth, error handling
+│   │   ├── models/              # Mongoose schemas
+│   │   ├── routes/              # Express routes
+│   │   ├── services/            # Business logic
+│   │   ├── app.ts               # Express app setup
+│   │   └── server.ts            # Server entry point
+│   └── scripts/
+│       └── create-admin.ts      # Admin creation script
 │
-├── ARCHITECTURE.md                  # Detailed architecture doc
-├── README.md                        # This file
-└── .env.example                     # Environment template
+├── index.html                    # HTML entry point
+├── package.json                  # Frontend dependencies
+├── tsconfig.json                 # TypeScript config
+├── vite.config.js                # Vite configuration
+└── README.md                     # This file
 ```
-
----
 
 ## 🚀 Getting Started
 
@@ -129,389 +113,291 @@ school-management-system/
 
 ### Installation
 
-#### 1. Clone the repository
+1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd school-management-system
+git clone https://github.com/Aamir-satti/schoolERPproduction.git
+cd schoolERPproduction
 ```
 
-#### 2. Setup Frontend
+2. **Install frontend dependencies**
 ```bash
-cd client
 npm install
 ```
 
-#### 3. Setup Backend
+3. **Install backend dependencies**
 ```bash
 cd server
 npm install
 ```
 
-#### 4. Configure Environment
-```bash
-# Backend
-cd server
-cp .env.example .env
-# Edit .env with your settings
+4. **Configure environment variables**
 
-# Frontend
-cd client
-# Create .env with VITE_API_URL=http://localhost:5000/api
-```
-
-#### 5. Create Admin Account
-```bash
-cd server
-npm run create-admin
-# Follow prompts to enter name, email, password
-```
-
-#### 6. Start Development Servers
-```bash
-# Terminal 1 - Backend
-cd server
-npm run dev
-
-# Terminal 2 - Frontend
-cd client
-npm run dev
-```
-
-#### 7. Access the Application
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:5000/api
-- Health Check: http://localhost:5000/api/health
-
----
-
-## 🔐 Environment Variables
-
-### Backend (.env)
-```env
-NODE_ENV=development
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/school_management
-JWT_ACCESS_SECRET=<generate-strong-random-string>
-JWT_REFRESH_SECRET=<generate-strong-random-string>
-JWT_ACCESS_EXPIRY=15m
-JWT_REFRESH_EXPIRY=7d
-CLIENT_URL=http://localhost:5173
-SCHOOL_NAME=Your School Name
-SCHOOL_ADDRESS=Your Address
-SCHOOL_PHONE=+1234567890
-SCHOOL_EMAIL=info@school.edu
-```
-
-### Frontend (.env)
+Frontend (create `.env` in root):
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
----
-
-## 🗄️ Database Design
-
-### Collections
-
-| Collection | Purpose |
-|-----------|---------|
-| `users` | Authentication & authorization |
-| `students` | Student profiles |
-| `teachers` | Teacher/staff profiles |
-| `classes` | Class & section management |
-| `subjects` | Subject definitions |
-| `timetables` | Class schedules |
-| `attendance` | Daily attendance records |
-| `exams` | Examination schedules |
-| `marks` | Student marks/grades |
-| `feeStructures` | Fee definitions per class |
-| `feePayments` | Fee payment records |
-| `salaryProfiles` | Teacher salary structures |
-| `salaryRecords` | Monthly salary records |
-| `notifications` | System announcements |
-
-### Key Relationships
-```
-User (1) ←→ (1) Student/Teacher
-Student (N) ←→ (1) Class
-Teacher (N) ←→ (N) Subject
-Student (1) ←→ (N) Attendance
-Student (1) ←→ (N) FeePayment
-Teacher (1) ←→ (N) SalaryRecord
-Exam (1) ←→ (N) Marks
+Backend (create `.env` in `server/`):
+```env
+NODE_ENV=development
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/school_management
+JWT_ACCESS_SECRET=your_secure_access_secret_here
+JWT_REFRESH_SECRET=your_secure_refresh_secret_here
+JWT_ACCESS_EXPIRY=15m
+JWT_REFRESH_EXPIRY=7d
+CLIENT_URL=http://localhost:3000
+SCHOOL_NAME=Your School Name
+SCHOOL_ADDRESS=Your School Address
+SCHOOL_PHONE=Your School Phone
+SCHOOL_EMAIL=your@email.com
 ```
 
----
+5. **Create admin account**
+```bash
+cd server
+npm run create-admin
+```
 
-## 📡 API Documentation
+6. **Start development servers**
+
+Terminal 1 - Backend:
+```bash
+cd server
+npm run dev
+```
+
+Terminal 2 - Frontend:
+```bash
+npm run dev
+```
+
+7. **Access the application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000/api
+- Health Check: http://localhost:5000/api/health
+
+## 📦 Build
+
+### Frontend
+```bash
+npm run build
+```
+
+### Backend
+```bash
+cd server
+npm run build
+```
+
+## 🔒 Security Features
+
+- Password hashing with bcrypt (12 rounds)
+- JWT access tokens (short-lived) + refresh tokens (httpOnly cookies)
+- Role-based authorization enforced on backend
+- CORS configured for specific origins
+- Helmet security headers
+- Rate limiting (100 requests per 15 minutes)
+- Input validation
+- MongoDB injection prevention
+- Secure cookie configuration (httpOnly, secure in production, sameSite)
+- No sensitive data exposure in production errors
+
+## 📊 Database Models
+
+- **User**: Authentication and user management
+- **Student**: Student profiles and academic information
+- **Teacher**: Teacher profiles and assignments
+- **Class**: Classes and sections
+- **Subject**: Subjects with class and teacher assignments
+- **Timetable**: Class schedules
+- **Attendance**: Daily attendance records
+- **Exam**: Examination schedules and configuration
+- **Mark**: Student marks and grades
+- **FeeStructure**: Fee definitions per class
+- **FeePayment**: Fee payment records
+- **SalaryProfile**: Teacher salary structures
+- **SalaryRecord**: Monthly salary records
+- **Notification**: System announcements
+
+## 🌐 API Endpoints
 
 ### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Login |
-| POST | `/api/auth/refresh` | Refresh token |
-| POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/me` | Current user |
-| POST | `/api/auth/change-password` | Change password |
+- `POST /api/auth/login` - Login
+- `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Current user
+- `POST /api/auth/change-password` - Change password
+
+### Dashboard
+- `GET /api/dashboard/admin` - Admin dashboard data
+- `GET /api/dashboard/teacher` - Teacher dashboard data
+- `GET /api/dashboard/student` - Student dashboard data
 
 ### Students
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/students` | Admin | List students |
-| GET | `/api/students/:id` | Admin | Get student |
-| POST | `/api/students` | Admin | Create student |
-| PUT | `/api/students/:id` | Admin | Update student |
-| GET | `/api/students/profile` | Student | Own profile |
+- `GET /api/students` - List students (Admin)
+- `POST /api/students` - Create student (Admin)
+- `GET /api/students/:id` - Get student
+- `PUT /api/students/:id` - Update student (Admin)
+- `PATCH /api/students/:id/status` - Update status (Admin)
 
 ### Teachers
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/teachers` | Admin | List teachers |
-| POST | `/api/teachers` | Admin | Create teacher |
-| PUT | `/api/teachers/:id` | Admin | Update teacher |
-| GET | `/api/teachers/profile` | Teacher | Own profile |
+- `GET /api/teachers` - List teachers (Admin)
+- `POST /api/teachers` - Create teacher (Admin)
+- `GET /api/teachers/:id` - Get teacher
+- `PUT /api/teachers/:id` - Update teacher (Admin)
+
+### Classes
+- `GET /api/classes` - List classes
+- `POST /api/classes` - Create class (Admin)
+- `PUT /api/classes/:id` - Update class (Admin)
+
+### Subjects
+- `GET /api/subjects` - List subjects
+- `POST /api/subjects` - Create subject (Admin)
+- `PUT /api/subjects/:id` - Update subject (Admin)
+
+### Timetable
+- `GET /api/timetables` - List timetables
+- `POST /api/timetables` - Create entry (Admin)
+- `GET /api/timetables/class/:classId/section/:sectionId` - Class timetable
+- `GET /api/timetables/teacher/:teacherId` - Teacher timetable
 
 ### Attendance
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/attendance` | Teacher | Mark attendance |
-| GET | `/api/attendance/class/:id/date/:date` | Teacher/Admin | Class attendance |
-| GET | `/api/attendance/student/:id` | Student/Parent | Student attendance |
-| GET | `/api/attendance/report/student/:id` | All | Attendance report |
-| GET | `/api/attendance/report/student/:id/pdf` | All | Download PDF |
+- `POST /api/attendance` - Mark attendance (Admin/Teacher)
+- `GET /api/attendance/class/:classId/date/:date` - Class attendance
+- `GET /api/attendance/student/:studentId` - Student attendance
+- `GET /api/attendance/report/student/:studentId` - Student report
+- `GET /api/attendance/report/class/:classId` - Class report
 
-### Exams & Marks
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/exams` | All | List exams |
-| POST | `/api/exams` | Admin | Create exam |
-| POST | `/api/marks` | Teacher | Enter marks |
-| POST | `/api/marks/upload/:examId/:subjectId` | Teacher | CSV upload |
-| GET | `/api/results/student/:id/exam/:id` | Student | View result |
-| GET | `/api/results/student/:id/exam/:id/pdf` | Student | Download PDF |
+### Exams
+- `GET /api/exams` - List exams
+- `POST /api/exams` - Create exam (Admin)
+- `PUT /api/exams/:id` - Update exam (Admin)
+- `DELETE /api/exams/:id` - Delete exam (Admin)
+- `PATCH /api/exams/:id/status` - Update status (Admin)
 
-### Finance
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/fees/structures` | Admin | List fee structures |
-| POST | `/api/fees/structures` | Admin | Create fee structure |
-| GET | `/api/fees/student/:id/ledger` | Admin/Student | Fee ledger |
-| POST | `/api/fees/payments` | Admin | Record payment |
-| GET | `/api/fees/challan/:id/pdf` | Admin/Student | Download challan |
-| GET | `/api/fees/dashboard` | Admin | Finance dashboard |
+### Marks
+- `POST /api/marks` - Enter marks (Admin/Teacher)
+- `GET /api/marks/exam/:examId/student/:studentId` - Student marks
+
+### Results
+- `GET /api/results/student/:studentId/exam/:examId` - Student result
+- `GET /api/results/student/:studentId` - All student results
+
+### Fees
+- `GET /api/fees/structures` - List fee structures
+- `POST /api/fees/structures` - Create fee structure (Admin)
+- `GET /api/fees/student/:studentId/ledger` - Student ledger
+- `POST /api/fees/payments` - Record payment (Admin)
+- `GET /api/fees/dashboard` - Fee dashboard (Admin)
 
 ### Salaries
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/salaries/profiles` | Admin | List profiles |
-| POST | `/api/salaries/profiles` | Admin | Create profile |
-| POST | `/api/salaries/records/generate` | Admin | Generate monthly |
-| POST | `/api/salaries/records/:id/pay` | Admin | Record payment |
+- `GET /api/salaries/profiles` - List salary profiles (Admin)
+- `POST /api/salaries/profiles` - Create profile (Admin)
+- `GET /api/salaries/records` - List records (Admin)
+- `POST /api/salaries/records/generate` - Generate monthly (Admin)
+- `POST /api/salaries/records/:id/pay` - Record payment (Admin)
+- `GET /api/salaries/dashboard` - Salary dashboard (Admin)
 
 ### Notifications
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/notifications` | Authenticated | List notifications |
-| POST | `/api/notifications` | Admin | Create notification |
-| GET | `/api/notifications/public` | Public | Public notifications |
+- `GET /api/notifications` - List notifications (Authenticated)
+- `GET /api/notifications/public` - Public notifications
+- `POST /api/notifications` - Create notification (Admin)
+- `PUT /api/notifications/:id` - Update notification (Admin)
+- `DELETE /api/notifications/:id` - Delete notification (Admin)
 
----
+## 🚢 Deployment
 
-## 🔑 Authentication
-
-### JWT Flow
-1. User logs in with email/password
-2. Server validates credentials
-3. Server generates access token (15 min) + refresh token (7 days)
-4. Access token stored in memory, refresh token in httpOnly cookie
-5. Subsequent requests include access token in Authorization header
-6. When access token expires, client calls refresh endpoint
-7. Server validates refresh token and issues new tokens
-
-### Role-Based Access Control
-```
-ADMIN: Full system access
-TEACHER: Attendance, marks, own timetable
-STUDENT: Own results, attendance, fees, timetable
-```
-
-### Security Measures
-- Password hashing: bcrypt (12 rounds)
-- JWT with separate access/refresh secrets
-- Rate limiting: 100 requests per 15 minutes
-- CORS: Whitelist specific origins
-- Helmet: Security headers
-- Input validation: Zod schemas
-- File upload validation
-- MongoDB injection prevention
-
----
-
-## 🌐 Deployment
-
-### Render Deployment
-
-#### Backend
-1. Create new Web Service on Render
-2. Connect GitHub repository
-3. Set root directory: `server`
-4. Build command: `npm install && npm run build`
-5. Start command: `npm start`
-6. Add environment variables from `.env.example`
-
-#### Frontend
-1. Create new Static Site on Render
-2. Connect GitHub repository
-3. Set root directory: `client`
-4. Build command: `npm install && npm run build`
-5. Publish directory: `dist`
-6. Set `VITE_API_URL` to backend URL
-
-### Railway Deployment
-
-#### Backend
-1. Create new project
-2. Deploy from GitHub
-3. Set root directory: `server`
-4. Add environment variables
-5. Add MongoDB plugin
-
-#### Frontend
-1. Deploy as static site
-2. Set build command and output directory
-3. Configure environment variables
-
-### VPS Deployment (Ubuntu)
-
+### Frontend (Vercel/Netlify/Render)
 ```bash
-# Install dependencies
-sudo apt update
-sudo apt install nodejs npm nginx mongodb-org
-
-# Clone and setup
-git clone <repo>
-cd school-management-system/server
-npm install
 npm run build
-
-# Setup PM2
-npm install -g pm2
-pm2 start dist/server.js --name school-api
-pm2 startup
-pm2 save
-
-# Configure Nginx
-sudo nano /etc/nginx/sites-available/school
+# Deploy the 'dist' directory
 ```
 
-Nginx configuration:
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
+Environment variables:
+- `VITE_API_URL` - Backend API URL
 
-    location / {
-        root /path/to/client/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
+### Backend (Render/Railway)
+```bash
+cd server
+npm run build
+npm start
 ```
 
----
+Environment variables:
+- `NODE_ENV=production`
+- `MONGODB_URI` - MongoDB connection string
+- `JWT_ACCESS_SECRET` - Strong random secret
+- `JWT_REFRESH_SECRET` - Strong random secret
+- `CLIENT_URL` - Frontend URL
+- All other variables from `.env.example`
 
-## 📊 Development Phases
+### Database (MongoDB Atlas)
+1. Create a cluster at mongodb.com/cloud/atlas
+2. Create a database user
+3. Whitelist IP addresses (0.0.0.0/0 for development)
+4. Get connection string
+5. Set `MONGODB_URI` environment variable
 
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 1 | Architecture & Design | ✅ Complete |
-| 2 | Backend Foundation | ✅ Structure Created |
-| 3 | Authentication | ✅ Service Created |
-| 4 | User Management | 📋 Ready |
-| 5 | Students & Teachers | 📋 Ready |
-| 6 | Academics | 📋 Ready |
-| 7 | Attendance | 📋 Ready |
-| 8 | Exams & Results | 📋 Ready |
-| 9 | Finance | 📋 Ready |
-| 10 | Notifications | 📋 Ready |
-| 11 | React Frontend | ✅ Core Complete |
-| 12 | Integration Testing | 📋 Ready |
-| 13 | Production Hardening | 📋 Ready |
+## 🔧 Development Commands
 
----
+### Frontend
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run typecheck    # Run TypeScript type checking
+```
+
+### Backend
+```bash
+cd server
+npm run dev          # Start development server with hot reload
+npm run build        # Build TypeScript
+npm start            # Start production server
+npm run create-admin # Create admin account
+```
+
+## 📝 Environment Variables
+
+See `.env.example` (frontend) and `server/.env.example` (backend) for all available configuration options.
+
+**Important**: Never commit `.env` files with real secrets to version control.
 
 ## 🧪 Testing
 
-### Manual Testing Checklist
+The application includes manual testing workflows. To test the complete system:
 
-#### Authentication
-- [ ] Login with valid credentials
-- [ ] Login with invalid credentials (should fail)
-- [ ] Access protected route without token (should redirect)
-- [ ] Token refresh on expiry
-- [ ] Logout clears tokens
+1. Create admin account
+2. Login as admin
+3. Create teachers and students
+4. Create classes and subjects
+5. Assign teachers to subjects/classes
+6. Create timetable entries
+7. Mark attendance
+8. Create exams
+9. Enter marks
+10. View results
+11. Create fee structures
+12. Record payments
+13. Create notifications
 
-#### Student Management
-- [ ] Create student (admin)
-- [ ] View student list
-- [ ] Update student details
-- [ ] Deactivate student
-- [ ] Data persists after refresh
+## 📄 License
 
-#### Attendance
-- [ ] Teacher marks attendance
-- [ ] Duplicate prevention works
-- [ ] Report generation
-- [ ] PDF download
-
-#### Finance
-- [ ] Create fee structure
-- [ ] Record partial payment
-- [ ] View ledger
-- [ ] Download challan PDF
-- [ ] Dashboard aggregation correct
-
----
-
-## 🔒 Security Checklist
-
-- [x] Password hashing (bcrypt)
-- [x] JWT authentication
-- [x] Role-based authorization
-- [x] Input validation (Zod)
-- [x] Rate limiting
-- [x] CORS configuration
-- [x] Security headers (Helmet)
-- [x] File upload validation
-- [x] MongoDB injection prevention
-- [x] Centralized error handling
-- [x] Environment variable protection
-- [x] No mock data in production
-- [x] No hardcoded credentials
-
----
-
-## 📝 License
-
-This project is built for educational purposes.
-
----
+This project is open source and available for educational and commercial use.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit changes
-4. Push to the branch
-5. Open a Pull Request
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 👨‍💻 Author
+
+**Aamir Satti**
+- GitHub: [@Aamir-satti](https://github.com/Aamir-satti)
+
+## 🙏 Acknowledgments
+
+Built with modern web technologies and best practices for production-ready applications.
 
 ---
 

@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-import { connectDatabase } from './config/database';
+import mongoose from 'mongoose';
 import { errorHandler } from './middleware/errorHandler';
 import { env } from './config/env';
 
@@ -21,6 +21,7 @@ import resultRoutes from './routes/results';
 import feeRoutes from './routes/fees';
 import salaryRoutes from './routes/salaries';
 import notificationRoutes from './routes/notifications';
+import dashboardRoutes from './routes/dashboard';
 
 const app = express();
 
@@ -76,11 +77,7 @@ app.use('/api/results', resultRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/salaries', salaryRoutes);
 app.use('/api/notifications', notificationRoutes);
-
-// Admin dashboard
-app.use('/api/admin', adminRoutes);
-app.use('/api/teacher', teacherDashboardRoutes);
-app.use('/api/student', studentDashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // 404 handler
 app.use((_req, res) => {
@@ -89,23 +86,5 @@ app.use((_req, res) => {
 
 // Global error handler
 app.use(errorHandler);
-
-// Connect to database and start server
-const startServer = async () => {
-  try {
-    await connectDatabase();
-    
-    app.listen(env.PORT, () => {
-      console.log(`🚀 Server running on port ${env.PORT}`);
-      console.log(`📊 Environment: ${env.NODE_ENV}`);
-      console.log(`🔗 Client URL: ${env.CLIENT_URL}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
-
-startServer();
 
 export default app;
